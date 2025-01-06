@@ -43,7 +43,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $FilePath = "./your-report.pbix"
+          $FilePath = "./Coffee-2.pbix"
           $WorkspaceId = "$(DevelopmentWorkspaceId)"
           $AccessToken = "$(PowerBIAccessToken)"
           Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
@@ -64,7 +64,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $FilePath = "./your-report.pbix"
+          $FilePath = "./Coffee-2.pbix"
           $WorkspaceId = "$(StagingWorkspaceId)"
           $AccessToken = "$(PowerBIAccessToken)"
           Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
@@ -85,7 +85,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          $FilePath = "./your-report.pbix"
+          $FilePath = "./Coffee-2.pbix"
           $WorkspaceId = "$(ProductionWorkspaceId)"
           $AccessToken = "$(PowerBIAccessToken)"
           Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
