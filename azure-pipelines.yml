@@ -1,19 +1,49 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
+# identify branches within the repository, triggers = changes in branches
 trigger:
 - main
+- development
+- staging
 
+# type of virtual machine running pipeline tasks
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Test for pushing to main
-  displayName: 'Run a one-line script'
+# define stages
+stages:
+# first stage
+- stage: Build
+  jobs:
+  - job: BuildJob
+    
+    # tasks within the job
+    steps:
+    - script: echo "This runs for all branches"
+      displayName: "Common Step" # prints to console (runs regardless of branch use)
 
-#- script: |
-#    echo Add other tasks to build, test, and deploy your project.
-#    echo See https://aka.ms/yaml
-#  displayName: 'Run a multi-line script'
+
+# second stage (only run if first stage run successfully)
+- stage: Deploy
+  dependsOn: Build
+  condition: eq(variables['Build.SourceBranchName'], 'development')
+  jobs:
+  - job: DeployToDev # job runs only when the source branch is 'development'
+    # tasks within the job
+    steps:
+    - script: echo "Deploying to development environment"
+      displayName: "Development Deployment"
+  
+  # deploy to the staging environment
+  - job: DeployToStaging # job runs only when the source branch is 'staging'
+    condition: eq(variables['Build.SourceBranchName'], 'staging')
+    # tasks within the job
+    steps:
+    - script: echo "Deploying to staging environment"
+      displayName: "Staging Deployment"
+
+  # deploy to the production environment
+  - job: DeployToProduction # job runs only when the source branch is 'main'
+    condition: eq(variables['Build.SourceBranchName'], 'main')
+    # tasks within the job
+    steps:
+    - script: echo "Deploying to production environment"
+      displayName: "Production Deployment"
