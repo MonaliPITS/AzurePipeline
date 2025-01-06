@@ -19,8 +19,6 @@ stages:
     steps:
     - script: echo "This runs for all branches"
       displayName: "Common Step" # prints to console (runs regardless of branch use)
-    - script: echo "Branch: $(Build.SourceBranchName)"
-      displayName: "Debug Branch Name"
 
 
 # second stage (only run if first stage run successfully)
