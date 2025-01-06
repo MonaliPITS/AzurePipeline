@@ -8,6 +8,12 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  DevelopmentWorkspaceId: "f9d11097-a45c-4319-8b40-6ae77beada3d"
+  StagingWorkspaceId: "0914db9c-b855-43f0-9e1a-662a6f9ed823"
+  ProductionWorkspaceId: "35cba658-3dda-42c6-947f-7eb4ff1a475b"
+  PowerBIAccessToken: "$(PowerBIAccessToken)"  # Use a secure pipeline variable for the token
+
 # define stages
 stages:
 # first stage
@@ -21,29 +27,69 @@ stages:
       displayName: "Common Step" # prints to console (runs regardless of branch use)
 
 
-# second stage (only run if first stage run successfully)
+# Second stage: Deploy
 - stage: Deploy
   dependsOn: Build
-  condition: eq(variables['Build.SourceBranchName'], 'development')
   jobs:
-  - job: DeployToDev # job runs only when the source branch is 'development'
-    # tasks within the job
+  # Deploy to development environment
+  - job: DeployToDev
+    condition: eq(variables['Build.SourceBranchName'], 'development')
     steps:
     - script: echo "Deploying to development environment"
       displayName: "Development Deployment"
-  
-  # deploy to the staging environment
-  - job: DeployToStaging # job runs only when the source branch is 'staging'
+    - script: echo "Publishing to the Development Workspace"
+      displayName: "Publish to Development Workspace"
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $FilePath = "./your-report.pbix"
+          $WorkspaceId = "$(DevelopmentWorkspaceId)"
+          $AccessToken = "$(PowerBIAccessToken)"
+          Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
+            -Method Post `
+            -Headers @{Authorization = "Bearer $AccessToken"} `
+            -InFile $FilePath `
+            -ContentType "multipart/form-data"
+
+  # Deploy to staging environment
+  - job: DeployToStaging
     condition: eq(variables['Build.SourceBranchName'], 'staging')
-    # tasks within the job
     steps:
     - script: echo "Deploying to staging environment"
       displayName: "Staging Deployment"
+    - script: echo "Publishing to the Staging Workspace"
+      displayName: "Publish to Staging Workspace"
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $FilePath = "./your-report.pbix"
+          $WorkspaceId = "$(StagingWorkspaceId)"
+          $AccessToken = "$(PowerBIAccessToken)"
+          Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
+            -Method Post `
+            -Headers @{Authorization = "Bearer $AccessToken"} `
+            -InFile $FilePath `
+            -ContentType "multipart/form-data"
 
-  # deploy to the production environment
-  - job: DeployToProduction # job runs only when the source branch is 'main'
+  # Deploy to production environment
+  - job: DeployToProduction
     condition: eq(variables['Build.SourceBranchName'], 'main')
-    # tasks within the job
     steps:
     - script: echo "Deploying to production environment"
       displayName: "Production Deployment"
+    - script: echo "Publishing to the Production Workspace"
+      displayName: "Publish to Production Workspace"
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $FilePath = "./your-report.pbix"
+          $WorkspaceId = "$(ProductionWorkspaceId)"
+          $AccessToken = "$(PowerBIAccessToken)"
+          Invoke-RestMethod -Uri "https://api.powerbi.com/v1.0/myorg/groups/$WorkspaceId/imports?datasetDisplayName=Report&nameConflict=Overwrite" `
+            -Method Post `
+            -Headers @{Authorization = "Bearer $AccessToken"} `
+            -InFile $FilePath `
+            -ContentType "multipart/form-data"
